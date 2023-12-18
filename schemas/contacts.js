@@ -16,6 +16,7 @@ const addSchema = Joi.object({
     "string.max": "Phone number cannot exceed 16 digits",
     "number.min": "You must be at least 18 years old",
   }),
+  favorite: Joi.boolean(),
 });
 
 module.exports = addSchema;
