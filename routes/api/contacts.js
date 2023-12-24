@@ -2,17 +2,33 @@ const express = require("express");
 const router = express.Router();
 
 const ctrl = require("../../controllers/contacts");
-const { validateBody } = require("../../middlewares");
-const { addSchema } = require("../../schemas");
+const {
+  validateAddBody,
+  validateObjectId,
+  validateFavoriteBody,
+} = require("../../middlewares");
+const { addSchema, updateFavoriteSchema } = require("../../schemas");
 
 router.get("/", ctrl.getContactsList);
 
-router.get("/:contactId", ctrl.getContactById);
+router.get("/:contactId", validateObjectId, ctrl.getContactById);
 
-router.post("/", validateBody(addSchema), ctrl.addContact);
+router.post("/", validateAddBody(addSchema), ctrl.addContact);
 
-router.put("/:contactId", validateBody(addSchema), ctrl.updateContactById);
+router.put(
+  "/:contactId",
+  validateObjectId,
+  validateAddBody(addSchema),
+  ctrl.updateContactById
+);
 
-router.delete("/:contactId", ctrl.deleteContactById);
+router.patch(
+  "/:contactId/favorite",
+  validateObjectId,
+  validateFavoriteBody(updateFavoriteSchema),
+  ctrl.updateStatusById
+);
+
+router.delete("/:contactId", validateObjectId, ctrl.deleteContactById);
 
 module.exports = router;
