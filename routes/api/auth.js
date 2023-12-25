@@ -7,4 +7,6 @@ const { registerSchema, loginSchema } = require("../../schemas");
 
 router.post("/register", validateAuthBody(registerSchema), ctrl.registerUser);
 
+router.post("/login", validateAuthBody(loginSchema), ctrl.loginUser);
+
 module.exports = router;
