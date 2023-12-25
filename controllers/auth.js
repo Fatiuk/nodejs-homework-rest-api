@@ -47,7 +47,28 @@ const loginUser = async (req, res) => {
   });
 };
 
+const logoutUser = async (req, res) => {
+  const { _id } = req.user;
+  await User.findByIdAndUpdate(_id, { token: null });
+
+  res.status(204).json({
+    message: "Your have signed out. Thank you for visiting!",
+  });
+};
+
+const getCurrentUser = (req, res) => {
+  const { name, email, subscription } = req.user;
+
+  res.json({
+    name,
+    email,
+    subscription,
+  });
+};
+
 module.exports = {
   registerUser: ctrlWrapper(registerUser),
   loginUser: ctrlWrapper(loginUser),
+  logoutUser: ctrlWrapper(logoutUser),
+  getCurrentUser: ctrlWrapper(getCurrentUser),
 };
