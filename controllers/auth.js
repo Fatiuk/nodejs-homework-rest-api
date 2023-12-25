@@ -66,9 +66,26 @@ const getCurrentUser = (req, res) => {
   });
 };
 
+const updateSubscription = async (req, res) => {
+  const { userId } = req.params;
+  const { subscription } = req.body;
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { subscription },
+    { new: true }
+  );
+
+  res.json({
+    message: `Subscription updated to ${user.subscription} successfully`,
+    subscription: user.subscription,
+  });
+};
+
 module.exports = {
   registerUser: ctrlWrapper(registerUser),
   loginUser: ctrlWrapper(loginUser),
   logoutUser: ctrlWrapper(logoutUser),
   getCurrentUser: ctrlWrapper(getCurrentUser),
+  updateSubscription: ctrlWrapper(updateSubscription),
 };
