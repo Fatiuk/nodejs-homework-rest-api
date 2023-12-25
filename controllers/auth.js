@@ -6,7 +6,6 @@ const { httpError, ctrlWrapper } = require("../helpers");
 
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
-  console.log(req.body);
   const user = await User.findOne({ email });
 
   if (user) {
@@ -18,7 +17,7 @@ const registerUser = async (req, res) => {
   const newUser = await User.create({ ...req.body, password: hashPassword });
 
   res.status(201).json({
-    message: `User with email ${newUser.email} was successfully created`,
+    message: `Hey, ${newUser.name}! Your account with email ${newUser.email}, was successfully created`,
   });
 };
 
