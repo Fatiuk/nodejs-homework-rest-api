@@ -19,6 +19,7 @@ const registerUser = async (req, res) => {
   const newUser = await User.create({ ...req.body, password: hashPassword });
 
   res.status(201).json({
+    user: { email: newUser.email, subscription: newUser.subscription },
     message: `Hey, ${newUser.name}! Your account with email ${newUser.email}, was successfully created`,
   });
 };
@@ -42,8 +43,9 @@ const loginUser = async (req, res) => {
   await User.findByIdAndUpdate(user._id, { token });
 
   res.status(200).json({
-    message: `Welcome back, ${user.name}! You have successfully logged in`,
     token,
+    user: { email: user.email, subscription: user.subscription },
+    message: `Welcome back, ${user.name}! You have successfully logged in`,
   });
 };
 

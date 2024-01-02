@@ -10,7 +10,7 @@ const getContactsList = async (req, res) => {
 
   const filter = {};
   if (favorite === "true" || favorite === "false") {
-    filter.favorite = favorite === "true";
+    filter.favorite = favorite
   }
 
   const result = await Contact.find(
