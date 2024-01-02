@@ -21,6 +21,7 @@ const validateAddBody = (schema) => {
         httpError(400, `Missing required field(s): ${missingFields.join(", ")}`)
       );
     }
+    next();
   };
 };
 
