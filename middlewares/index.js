@@ -3,6 +3,7 @@ const validateObjectId = require("./validateObjectId");
 const validateFavoriteBody = require("./validateFavoriteBody");
 const validateAuthBody = require("./validateAuthBody");
 const authenticate = require("./authenticate");
+const upload = require("./multer");
 
 module.exports = {
   validateAddBody,
@@ -10,4 +11,5 @@ module.exports = {
   validateFavoriteBody,
   validateAuthBody,
   authenticate,
+  upload,
 };
