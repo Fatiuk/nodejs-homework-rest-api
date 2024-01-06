@@ -11,6 +11,8 @@ const {
 
 router.post("/register", validateAuthBody(registerSchema), ctrl.registerUser);
 
+router.get("/verify/:verificationToken", ctrl.verifyEmail);
+
 router.post("/login", validateAuthBody(loginSchema), ctrl.loginUser);
 
 router.post("/logout", authenticate, ctrl.logoutUser);
