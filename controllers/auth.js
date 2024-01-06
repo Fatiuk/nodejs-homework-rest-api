@@ -41,25 +41,31 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
+
   if (!user) {
     throw httpError(401, "Email or password is invalid");
   }
-  const passwordCompare = await bcrypt.compare(password, user.password);
+
+  const { _id: id, password: hashedPassword } = user;
+  const passwordCompare = await bcrypt.compare(password, hashedPassword);
+
   if (!passwordCompare) {
-    throw httpError(401, "Email or password is invalid");
+    throw httpError(401, "Invalid email or password");
   }
 
-  const payload = {
-    id: user._id,
-  };
-
+  const payload = { id };
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "5m" });
-  await User.findByIdAndUpdate(user._id, { token });
+  await User.findByIdAndUpdate(id, { token });
+  const { name, subscription, avatarURL } = user;
 
   res.status(200).json({
     token,
-    user: { email: user.email, subscription: user.subscription },
-    message: `Welcome back, ${user.name}! You have successfully logged in`,
+    user: {
+      email,
+      subscription,
+      avatarURL,
+    },
+    message: `Welcome back, ${name}! You have successfully logged in`,
   });
 };
 
@@ -73,12 +79,13 @@ const logoutUser = async (req, res) => {
 };
 
 const getCurrentUser = (req, res) => {
-  const { name, email, subscription } = req.user;
+  const { name, email, subscription, avatarURL } = req.user;
 
   res.json({
     name,
     email,
     subscription,
+    avatarURL,
   });
 };
 
