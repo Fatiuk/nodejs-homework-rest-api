@@ -6,13 +6,14 @@ const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const Jimp = require("jimp");
 const { v4: uuidv4 } = require("uuid");
-const handlebars = require("handlebars");
 
 const User = require("../models/user");
 
-const { httpError, ctrlWrapper, sendEmail } = require("../helpers");
+const { httpError, ctrlWrapper } = require("../helpers");
 
-const { SECRET_KEY, DB_SERVER_PORT = 8080, BASE_URL } = process.env;
+const sendVerifyMessage = require("../helpers/sendVerifyMessage");
+
+const { SECRET_KEY } = process.env;
 
 const avatarDir = path.join(__dirname, "../", "public", "avatars");
 
@@ -37,24 +38,7 @@ const registerUser = async (req, res) => {
     password: hashPassword,
   });
 
-  const templatePath = "./templates/emailTemplate.hbs";
-  const templateContent = await fs.readFile(templatePath, "utf-8");
-
-  const emailTemplate = handlebars.compile(templateContent);
-
-  const emailData = {
-    url: `${BASE_URL}:${DB_SERVER_PORT}/api/users/verify/${verificationToken}`,
-  };
-
-  const htmlContent = emailTemplate(emailData);
-
-  const verifyEmail = {
-    to: email,
-    subject: "Verify your email",
-    html: htmlContent,
-  };
-
-  await sendEmail(verifyEmail);
+  await sendVerifyMessage(newUser.email, verificationToken);
 
   res.status(201).json({
     user: { email: newUser.email, subscription: newUser.subscription },
@@ -62,7 +46,7 @@ const registerUser = async (req, res) => {
   });
 };
 
-const verifyEmail = async (req, res) => {
+const sendVerificationEmail = async (req, res) => {
   const { verificationToken } = req.params;
   const user = await User.findOne({ verificationToken });
 
@@ -78,6 +62,22 @@ const verifyEmail = async (req, res) => {
   res.status(200).json({
     message: "Your email address has been successfully verified",
   });
+};
+
+const resendVerificationEmail = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw httpError(404, "User not found");
+  }
+
+  if (user.verify) {
+    throw httpError(400, "Verification has already been passed");
+  }
+
+  await sendVerifyMessage(email, user.verificationToken);
 };
 
 const loginUser = async (req, res) => {
@@ -177,7 +177,8 @@ const updateAvatar = async (req, res) => {
 
 module.exports = {
   registerUser: ctrlWrapper(registerUser),
-  verifyEmail: ctrlWrapper(verifyEmail),
+  sendVerificationEmail: ctrlWrapper(sendVerificationEmail),
+  resendVerificationEmail: ctrlWrapper(resendVerificationEmail),
   loginUser: ctrlWrapper(loginUser),
   logoutUser: ctrlWrapper(logoutUser),
   getCurrentUser: ctrlWrapper(getCurrentUser),
