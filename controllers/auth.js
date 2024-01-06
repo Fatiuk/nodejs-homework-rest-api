@@ -5,12 +5,14 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const Jimp = require("jimp");
+const { v4: uuidv4 } = require("uuid");
+const handlebars = require("handlebars");
 
 const User = require("../models/user");
 
-const { httpError, ctrlWrapper } = require("../helpers");
+const { httpError, ctrlWrapper, sendEmail } = require("../helpers");
 
-const { SECRET_KEY } = process.env;
+const { SECRET_KEY, DB_SERVER_PORT = 8080, BASE_URL } = process.env;
 
 const avatarDir = path.join(__dirname, "../", "public", "avatars");
 
@@ -22,15 +24,37 @@ const registerUser = async (req, res) => {
     throw httpError(409, "Email already in use");
   }
 
-  const hashPassword = await bcrypt.hash(password, 10);
-
   const avatarURL = gravatar.url(email);
+
+  const verificationToken = uuidv4();
+
+  const hashPassword = await bcrypt.hash(password, 10);
 
   const newUser = await User.create({
     ...req.body,
     avatarURL,
+    verificationToken,
     password: hashPassword,
   });
+
+  const templatePath = "./templates/emailTemplate.hbs";
+  const templateContent = await fs.readFile(templatePath, "utf-8");
+
+  const emailTemplate = handlebars.compile(templateContent);
+
+  const emailData = {
+    url: `${BASE_URL}:${DB_SERVER_PORT}/api/auth/verify/${verificationToken}`,
+  };
+
+  const htmlContent = emailTemplate(emailData);
+
+  const verifyEmail = {
+    to: email,
+    subject: "Verify your email",
+    html: htmlContent,
+  };
+
+  await sendEmail(verifyEmail);
 
   res.status(201).json({
     user: { email: newUser.email, subscription: newUser.subscription },
